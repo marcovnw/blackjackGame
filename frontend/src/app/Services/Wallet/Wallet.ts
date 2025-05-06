@@ -1,7 +1,7 @@
 import { ethers } from "ethers";
 // Modify to match your contract
 
-import  lock from "../../../artifacts/contracts/Lock.sol/Lock.json";
+import  lock from "../../../artifacts/contracts/BlackJackGame.sol/Blackjack.json";
 
 
 export enum WalletConnectionStatus {
@@ -14,7 +14,7 @@ export class WalletConnection {
     static connectToWallet(): void {
         throw new Error("Method not implemented.");
     }
-    contractAddress = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
+    contractAddress = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266";
     contract?:ethers.Contract;
     provider?: ethers.BrowserProvider;
     signer?: ethers.Signer;
