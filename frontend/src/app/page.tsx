@@ -220,6 +220,7 @@ export default function Home() {
     });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [gameStarted, setGameStarted] = useState(false); // Add state to track game start
 
     // Connect to the Ethereum provider and contract
     useEffect(() => {
@@ -239,10 +240,16 @@ export default function Home() {
     const startGame = async () => {
         if (!contract) return;
         setLoading(true);
-        const tx = await contract.startGame();
-        await tx.wait();
-        console.log("Game started");
-        await fetchGameData();
+        try{
+            const tx = await contract.startGame();
+            await tx.wait();
+            console.log("Game started");
+            await fetchGameData();
+            setGameStarted(true);
+        } catch(e:any){
+            setError(e.message);
+        }
+
         setLoading(false);
 
     };
@@ -251,10 +258,16 @@ export default function Home() {
     const restartGame = async () => {
         if (!contract) return;
         setLoading(true);
-        const tx = await contract.restartGame();
-        await tx.wait();
-        console.log("Game restarted");
-        await fetchGameData();
+        try{
+            const tx = await contract.restartGame();
+            await tx.wait();
+            console.log("Game restarted");
+            await fetchGameData();
+            setGameStarted(true);
+        } catch(e:any){
+             setError(e.message);
+        }
+
         setLoading(false);
     };
 
@@ -262,10 +275,15 @@ export default function Home() {
     const handleHit = async () => {
         if (!contract) return;
         setLoading(true);
-        const tx = await contract.hit();
-        await tx.wait();
-        console.log("Player hit");
-        await fetchGameData();
+        try{
+            const tx = await contract.hit();
+            await tx.wait();
+            console.log("Player hit");
+            await fetchGameData();
+        } catch(e:any){
+             setError(e.message);
+        }
+
         setLoading(false);
     };
 
@@ -273,10 +291,15 @@ export default function Home() {
     const handleStand = async () => {
         if (!contract) return;
         setLoading(true);
-        const tx = await contract.stand();
-        await tx.wait();
-        console.log("Player stood");
-        await fetchGameData();
+        try{
+            const tx = await contract.stand();
+            await tx.wait();
+            console.log("Player stood");
+            await fetchGameData();
+        } catch(e:any){
+             setError(e.message);
+        }
+
         setLoading(false);
     };
 
@@ -284,14 +307,19 @@ export default function Home() {
     const fetchGameData = async () => {
         if (!contract) return;
         setLoading(true);
-        const data = await contract.getGame();
-        const gameStateData: GameStateData = {
-            playerCards: data.playerCards.map((x: any) => Number(x)),
-            dealerCards: data.dealerCards.map((x: any) => Number(x)),
-            result: data.result,
-            state: Number(data.state),
-        };
-        setGameState(gameStateData);
+        try{
+            const data = await contract.getGame();
+            const gameStateData: GameStateData = {
+                playerCards: data.playerCards.map((x: any) => Number(x)),
+                dealerCards: data.dealerCards.map((x: any) => Number(x)),
+                result: data.result,
+                state: Number(data.state),
+            };
+            setGameState(gameStateData);
+        } catch(e:any){
+             setError(e.message);
+        }
+
         setLoading(false);
     };
 
@@ -304,59 +332,65 @@ export default function Home() {
 
     return (
         <div className={styles.page}>
-            <div className={styles.startGameButton}>
-                <button
-                    className={styles.startGameButton}
-                    onClick={startGame}
-                    disabled={loading}
-                >
-                    {loading ? "Starting..." : "Start Game"}
-                </button>
-                <button
-                    className={styles.startGameButton}
-                    onClick={restartGame}
-                    disabled={loading}
-                >
-                    {loading ? "Restarting..." : "Restart Game"}
-                </button>
-            </div>
-
-            <div className={styles.container}>
-                {error && <div className={styles.error}>{error}</div>}
-                {loading && <div className={styles.loading}>Loading...</div>}
-
-                {/* Display Game State */}
-                <div>
-                    <h2>Your Cards:</h2>
-                    <p>{gameState.playerCards.join(", ")}</p>
-                    <h2>Dealer&apos;s Cards:</h2>
-                    <p>{gameState.dealerCards.join(", ")}</p>
-                    <h2>Result:</h2>
-                    <p>{gameState.result}</p>
-                    <h2>Game State:</h2>
-                    <p>{gameState.state}</p>
+            {!gameStarted && (  //show start game button only when game has not started
+                <div className={styles.startGameButton}>
+                    <button
+                        className={styles.startGameButton}
+                        onClick={startGame}
+                        disabled={loading}
+                    >
+                        {loading ? "Starting..." : "Start Game"}
+                    </button>
                 </div>
+            )}
 
-                {/* Action Buttons (Hit, Stand) */}
-                {gameState.state === 1 && (
-                    <div>
+            {gameStarted && ( //show this after game started.
+                <div className={styles.container}>
+                    {error && <div className={styles.error}>{error}</div>}
+                    {loading && <div className={styles.loading}>Loading...</div>}
+                    <div className={styles.startGameButton}>
                         <button
-                            className={styles.actionButton}
-                            onClick={handleHit}
+                            className={styles.startGameButton}
+                            onClick={restartGame}
                             disabled={loading}
                         >
-                            {loading ? "Hitting..." : "Hit"}
-                        </button>
-                        <button
-                            className={styles.actionButton}
-                            onClick={handleStand}
-                            disabled={loading}
-                        >
-                            {loading ? "Standing..." : "Stand"}
+                            {loading ? "Restarting..." : "Restart Game"}
                         </button>
                     </div>
-                )}
-            </div>
+
+                    {/* Display Game State */}
+                    <div>
+                        <h2>Your Cards:</h2>
+                        <p>{gameState.playerCards.join(", ")}</p>
+                        <h2>Dealer&apos;s Cards:</h2>
+                        <p>{gameState.dealerCards.join(", ")}</p>
+                        <h2>Result:</h2>
+                        <p>{gameState.result}</p>
+                        <h2>Game State:</h2>
+                        <p>{gameState.state}</p>
+                    </div>
+
+                    {/* Action Buttons (Hit, Stand) */}
+                    {gameState.state === 1 && (
+                        <div>
+                            <button
+                                className={styles.actionButton}
+                                onClick={handleHit}
+                                disabled={loading}
+                            >
+                                {loading ? "Hitting..." : "Hit"}
+                            </button>
+                            <button
+                                className={styles.actionButton}
+                                onClick={handleStand}
+                                disabled={loading}
+                            >
+                                {loading ? "Standing..." : "Stand"}
+                            </button>
+                        </div>
+                    )}
+                </div>
+            )}
         </div>
     );
 }
