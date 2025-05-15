@@ -2,6 +2,7 @@
 pragma solidity ^0.8.20;
 
 contract BlackjackSimple {
+    string public owner = "Marco Antonio Valdespino";
     enum GameState { NotStarted, PlayerTurn, DealerTurn, Finished }
 
     struct Game {
